@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부산시교육청 차량안전점검 전문인단</title>
+<meta property="og:title" content="부산시교육청 차량안전점검 전문인단">
+<meta property="og:description" content="본인 성함을 선택하여 일정을 확인해 주세요.">
+<meta property="og:type" content="website">
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; margin: 0; }
+        .container { background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        h2 { color: #333; margin-top: 0; margin-bottom: 10px; font-size: 1.8em; }
+        p.desc { color: #666; margin-bottom: 30px; font-size: 1em; line-height: 1.5; }
+        .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; }
+        
+        /* 모바일에서도 터치하기 쉽도록 큼직하고 둥근 스마트 버튼 디자인 적용 */
+        .teacher-btn { padding: 15px 10px; border: 2px solid #007bff; background: white; color: #007bff; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: all 0.2s ease-in-out; }
+        .teacher-btn:hover { background-color: #007bff; color: white; transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,123,255,0.3); }
+        
+        /* [신규 CSS] 기억된 본인 이름(활성화) 및 타인 이름(비활성화 흑백 처리) */
+        .teacher-btn.selected { background-color: #28a745; color: white; border-color: #28a745; transform: scale(1.05); box-shadow: 0 4px 10px rgba(40,167,69,0.3); }
+        .teacher-btn.dimmed { background-color: #f8f9fa; color: #bbb; border-color: #e2e2e2; transform: none; box-shadow: none; }
+        
+        /* [신규 CSS] 최종 접속하기 버튼 디자인 */
+        .enter-btn { margin-top: 30px; padding: 18px; width: 100%; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 1.3em; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
+        .enter-btn:disabled { background-color: #ccc; color: #888; cursor: not-allowed; box-shadow: none; }
+        .enter-btn:hover:not(:disabled) { background-color: #0056b3; }
+
+        .loading { color: #888; font-style: italic; display: inline-block; width: 100%; text-align: center; }
+        /* [보안 락 강화] 관리자 모드 스위치 완벽 은폐 (커서 기본값 유지, 드래그 방지) */
+        .admin-switch { cursor: default; user-select: none; -webkit-user-select: none; -ms-user-select: none; }
+      
+        /* [신규 CSS] 하단 버전 정보 명판 */
+        .version-info { margin-top: 15px; font-size: 0.85em; color: #999; letter-spacing: 0.5px; }
+    
+    </style>
+</head>
+<body>
+
+    <div class="container">
+                <h2><span class="admin-switch" onclick="checkAdminAccess()">부산시 교육청</span><br>차량안전점검 전문인단</h2>
+        <p class="desc">아래 명단에서 <b>본인의 성함</b>을 선택한 후<br>접속하기 버튼을 눌러주세요.</p>
+        
+        <div id="teacherGrid" class="teacher-grid">
+            <span class="loading">엔진 예열 중... 서버에서 명단을 불러오고 있습니다.</span>
+        </div>
+
+                <button id="enterBtn" class="enter-btn" disabled onclick="enterSystem()">접속하기</button>
+        <div class="version-info">Ver 26.05.11 (안전점검 시스템)</div>
+    </div>
+
+<script src="index.js"></script>
+</body>
+</body>
+</html>

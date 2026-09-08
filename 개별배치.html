@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>교사 지역 배정 시스템 - 내 일정 확인</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=bcf6d2dc6e3d568e279b2d2cc3e4faf2&libraries=services"></script>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 800px; margin-top: 20px; }
+        
+        .header-area { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 20px; }
+        h2 { color: #333; margin: 0; font-size: 1.6em; }
+        .teacher-name-highlight { color: #007bff; font-size: 1.2em; font-weight: 900; }
+        
+        .back-btn { background-color: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .back-btn:hover { background-color: #5a6268; }
+        .guide-btn { background-color: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .guide-btn:hover { background-color: #138496; }
+        .header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .guide-section { margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #17a2b8; }
+        .guide-section h4 { margin: 0 0 8px 0; color: #007bff; font-size: 1.05em; }
+        .guide-section p { margin: 0 0 6px 0; color: #444; font-size: 0.92em; line-height: 1.5; }
+        .guide-section ul { margin: 4px 0 0 0; padding-left: 18px; color: #444; font-size: 0.9em; line-height: 1.55; }
+        .guide-ok { color: #28a745; font-weight: bold; }
+        .guide-bad { color: #dc3545; font-weight: bold; }
+
+        .result-box { overflow-x: auto; }
+        table { width:100%; border-collapse: collapse; text-align: center; background: white; font-size: 0.95em; min-width: 600px; }
+        th { background-color:#007bff; color:white; height: 35px; border: 1px solid #ddd; padding: 5px; }
+        td { border: 1px solid #ddd; padding: 10px 5px; }
+        
+        .co-teacher { display: inline-block; background-color: #e9ecef; padding: 3px 8px; border-radius: 12px; font-size: 0.9em; margin: 2px; border: 1px solid #ccc; color: #333; }
+        .no-data { text-align: center; padding: 40px; color: #666; font-size: 1.1em; background: #f8f9fa; border-radius: 8px; }
+        .loading { color: #888; font-style: italic; text-align: center; display: block; padding: 20px; }
+
+        /* 학교명 클릭 유도 및 지도 프레임 디자인 */
+        .school-link { color: #007bff; font-weight: bold; cursor: pointer; text-decoration: underline; transition: 0.2s; }
+        .school-link:hover { color: #dc3545; }
+        #map { width: 100%; height: 350px; border-radius: 8px; border: 1px solid #ccc; margin-top: 10px; }
+        .map-title { font-weight: bold; margin-top: 20px; margin-bottom: 5px; color: #333; display: flex; align-items: center; gap: 5px; font-size: 1.1em; }
+        
+        /* 길찾기 버튼 디자인 */
+        .navi-btn { display: inline-block; margin-top: 8px; padding: 6px 12px; background-color: #fee500; color: #3c1e1e; font-size: 12px; font-weight: bold; text-decoration: none; border-radius: 4px; border: 1px solid #ebcf00; }
+        .navi-btn:hover { background-color: #fada00; }
+
+       @media (max-width: 600px) {
+    body { padding: 0; background-color: #fff; }
+    .container { margin-top: 0; padding: 10px; border-radius: 0; box-shadow: none; box-sizing: border-box; }
+    .header-area { padding-bottom: 8px; margin-bottom: 12px; }
+    h2, .teacher-name-highlight { font-size: 1.1em; }
+    .back-btn, .guide-btn { padding: 5px 10px; font-size: 0.85em; }
+    table { font-size: 0.75em; }
+    td, th { padding: 8px 2px; }
+    .map-title { font-size: 0.95em; margin-top: 15px; display: block; }
+    .map-sub-title { display: block; font-size: 0.85em; font-weight: normal; color: #666; margin-top: 2px; }
+    #map { height: 250px; }
+}
+
+/* [튜닝] 모바일 환경에서 점검표 팝업을 전체 화면으로 확장 */
+        @media (max-width: 600px) {
+            #inspectionModalOverlay > div { 
+                width: 100% !important; 
+                height: 100% !important; 
+                max-width: 100% !important; 
+                max-height: 100% !important; 
+                border-radius: 0 !important; 
+                padding: 0 !important; /* 프레임 겉면 여백 제거 */
+            }
+            /* 스크롤 구역·호차 고정 구역 내부 여백만 유지 */
+            .modal-scroll-area { padding: 15px !important; }
+            .modal-bus-sticky { padding: 10px 15px 8px !important; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-area">
+            <h2><span id="displayTeacherName" class="teacher-name-highlight"></span> 전문가</h2>
+            <div class="header-actions">
+                <button class="guide-btn" onclick="openInspectionGuide()">📖 점검법</button>
+                <button class="back-btn" onclick="goBack()">🔙 메인으로</button>
+            </div>
+        </div>
+
+        <div class="result-box" id="scheduleTableArea">
+            <span class="loading">엔진 가동 중... 일정을 분석하고 있습니다.</span>
+        </div>
+
+        <div class="map-title">📍 배정 학교 위치 내비게이션 (표에서 학교명을 클릭하세요)</div>
+        <div id="map"></div>
+    </div>
+
+    <!-- 점검법 안내 모달 -->
+    <div id="inspectionGuideOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2100; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:10px; width:92%; max-width:640px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div style="padding:12px 15px; border-bottom:2px solid #17a2b8; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; color:#17a2b8; font-size:1.15em;">버스 사전 점검법 안내</h3>
+                <button onclick="closeInspectionGuide()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold;">✖ 닫기</button>
+            </div>
+            <div style="padding:16px 18px; overflow-y:auto; flex:1;">
+                <p style="margin-top:0; color:#555; font-size:0.92em; line-height:1.5;">출발일(점검표)을 눌러 호차별로 점검합니다. 화면의 <span class="guide-ok">초록</span>은 양호, <span class="guide-bad">빨강</span>은 불량/미흡입니다.</p>
+                <p style="color:#666; font-size:0.85em; line-height:1.45; background:#fff8e6; border:1px solid #ffe08a; border-radius:6px; padding:8px 10px;">※ 아래 안내는 도로교통법·자동차안전기준·소방시설법 시행규칙 등을 참고한 <b>현장 점검 가이드</b>입니다. 차종·정원에 따라 법정 최소 기준이 달라질 수 있으니, 애매하면 정원·능력단위를 추가로 확인하세요.</p>
+
+                <div class="guide-section">
+                    <h4>1. 차량 제원</h4>
+                    <p>차량번호·주행거리·연식·좌석수(승차정원)를 확인 후 입력합니다. 좌석수는 소화기 개수 판단에도 참고합니다.</p>
+                    <ul>
+                        <li>차량번호는 번호판의 숫자 부분을 기준으로 입력합니다.</li>
+                        <li>주행거리는 계기판 km를 확인합니다.</li>
+                        <li>연식·좌석수는 차량 표기 또는 서류/외관을 확인합니다.</li>
+                    </ul>
+                </div>
+
+                <div class="guide-section">
+                    <h4>2. 타이어 상태</h4>
+                    <p>앞좌(FL)·앞우(FR)·뒤좌(RL)·뒤우(RR)를 눈으로 확인합니다. 기본은 양호이며, <b>불량일 때만</b> 해당 버튼을 터치해 빨강으로 바꿉니다.</p>
+                    <ul>
+                        <li><span class="guide-bad">불량 예시:</span> 공기압 현저히 부족, 심한 마모, 갈라짐·파손, 못·이물질, 편마모 등</li>
+                        <li>이중 타이어인 경우 안쪽·바깥쪽도 함께 확인합니다.</li>
+                    </ul>
+                </div>
+
+                <div class="guide-section">
+                    <h4>3. 외부 등화장치</h4>
+                    <p>전조등·제동등·번호판등을 점등/점멸 상태로 확인합니다. 불량일 때만 해당 버튼을 터치합니다.</p>
+                    <ul>
+                        <li><span class="guide-bad">불량 예시:</span> 한쪽만 안 들어옴, 깨짐, 심하게 어두움, 제동 시 등화 미작동</li>
+                        <li>어린이통학버스의 <b>점멸식 어린이보호 표시등</b>은 별도 설비이므로, 가능하면 앞·뒤 표시등 작동도 함께 확인합니다.</li>
+                    </ul>
+                </div>
+
+                <div class="guide-section">
+                    <h4>4. 안전벨트</h4>
+                    <p>좌석마다 벨트 착용·잠금·풀림이 정상인지 확인합니다. 어린이통학버스는 법령상 <b>어린이 신체에 맞게 조절 가능한 좌석안전띠</b>를 갖추고, 출발 전 착용을 확인해야 합니다.</p>
+                    <ul>
+                        <li><span class="guide-ok">전좌석 양호:</span> 잠금·풀림·길이조절이 정상이고 파손이 없음</li>
+                        <li><span class="guide-bad">불량 발생:</span> 잠금 불량, 끊어짐, 빠지지 않음, 버클 고장, 길이조절 불가 등 → <b>불량 개수</b> 입력</li>
+                    </ul>
+                </div>
+
+                <div class="guide-section">
+                    <h4>5. 비상탈출 망치</h4>
+                    <p>창가 등 비상망치 비치 위치를 확인하며 개수를 셉니다. 본 점검표는 현장 기준으로 <b>4개 이상</b>을 양호로 둡니다.</p>
+                    <ul>
+                        <li><span class="guide-ok">양호(점검표):</span> <b>4개 이상</b> (비상구를 강화유리 창으로 쓰는 버스에서 흔히 요구되는 비치 수준)</li>
+                        <li><span class="guide-bad">미흡(점검표):</span> 3개 이하 또는 없음 / 분실·고정 해제</li>
+                        <li>법령·차종에 따라 “최소 4개”가 아닌 <b>비상탈출구 주변 비치</b>만 명시되는 경우도 있습니다. 개수가 애매하면 위치·사용 가능 여부까지 기록하세요.</li>
+                    </ul>
+                </div>
+
+                <div class="guide-section">
+                    <h4>6. 소화기</h4>
+                    <p>비치 개수·능력단위·상태를 확인합니다. 분말소화기 내용연수는 보통 <b>제조일부터 10년</b>이며, 성능확인검사로 연장이 가능할 수 있습니다.</p>
+                    <ul>
+                        <li><b>능력단위란?</b> 소화기의 “불을 끄는 성능”을 숫자로 나타낸 등급입니다. 개수가 아니라 <b>성능 크기</b>입니다. 빨간 ABC 분말소화기 라벨에 <b>능력단위 1 / 2 / 3</b>처럼 적혀 있습니다. (대략 0.7kg→1, 1.5kg→2, 3.3kg→3 전후인 경우가 많음. 제품 라벨 확인이 정확합니다.)</li>
+                        <li><b>법정 개수(소방시설법 시행규칙, 정원별):</b>
+                            <ul style="margin-top:4px;">
+                                <li>경형·소형 등: 능력단위에 따라 <b>1개</b>만으로도 충족되는 경우가 있음</li>
+                                <li>승차정원 15인 이하: 능력단위 2짜리 1개 <b>또는</b> 능력단위 1짜리 2개</li>
+                                <li>승차정원 16~35인: 능력단위 2짜리 <b>2개 이상</b></li>
+                                <li>승차정원 36인 이상: 능력단위 3짜리 1개 + 능력단위 2짜리 1개 등 (2층차는 추가)</li>
+                            </ul>
+                        </li>
+                        <li>점검표 버튼의 “2개 이상=초록 / 1개=빨강”은 <b>현장 간단 판정</b>입니다. 작은 차는 1개여도 법 충족일 수 있고, 큰 차는 2개여도 능력단위가 부족하면 미흡일 수 있으니 정원·능력단위를 함께 보세요.</li>
+                        <li><span class="guide-bad">상태 불량:</span> 내용연수(10년) 초과, 압력계 이상, 봉인 파손, 본체 손상 등 → 불량 개수 입력</li>
+                    </ul>
+                </div>
+
+                <div class="guide-section">
+                    <h4>7. 학생 탑승 차량표시 (어린이 보호표지)</h4>
+                    <p>도로교통법상 <b>어린이 보호표지</b>는 앞·뒤에 규정된 위치에 부착해야 합니다.</p>
+                    <ul>
+                        <li><span class="guide-ok">양호:</span> 앞·뒤 표시가 모두 확인됨</li>
+                        <li>권장 확인 위치: <b>앞면 창유리 우측 상단</b>, <b>뒷면 창유리 중앙 하단</b></li>
+                        <li><span class="guide-bad">앞 X / 뒤 X:</span> 해당 위치 표시가 없거나 식별이 어려움 (규격·색상 불량 포함)</li>
+                        <li>어린이 탑승 중에는 관련 표시·점멸등 사용 의무가 있으므로, 표지 부착과 함께 표시등 상태도 가능하면 확인합니다.</li>
+                    </ul>
+                </div>
+
+                <p style="color:#666; font-size:0.88em; margin-bottom:0;">호차마다 점검 후 상단 <b>저장</b>을 눌러야 서버에 반영됩니다. 같은 날 여러 대면 1호차·2호차…를 각각 작성하세요.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- [신규 UI] 버스 사전 점검표 모달 (숨김 상태) -->
+    <div id="inspectionModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
+        
+        <!-- [구조 튜닝] flex-column 2분할 프레임 조립 -->
+        <div style="background:white; border-radius:10px; width:90%; max-width:600px; max-height:90vh; display:flex; flex-direction:column; position:relative; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow:hidden;">
+            
+            <!-- 1. [고정 헤더 프레임] 스크롤과 무관하게 상단에 용접됨 -->
+            <div style="background:#fff; padding:12px 15px; border-bottom:2px solid #007bff; display:flex; justify-content:space-between; align-items:center; z-index:10; box-shadow:0 2px 6px rgba(0,0,0,0.08); flex-shrink:0;">
+                <h3 style="margin:0; color:#007bff; font-size:1.15em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:55%;"><span id="inspectSchoolName"></span> 점검표</h3>
+                <div style="display:flex; gap:6px;">
+                    <button onclick="saveInspection()" style="background:#28a745; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; box-shadow:0 2px 4px rgba(40,167,69,0.3); transition:0.2s;">💾 저장</button>
+                    <button onclick="closeInspectionModal()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; transition:0.2s;">✖ 닫기</button>
+                </div>
+            </div>
+
+            <!-- 1-2. [호차 탭 고정] 스크롤해도 항상 상단에 유지 -->
+            <div class="modal-bus-sticky" style="background:#fff; padding:12px 20px 10px; border-bottom:1px solid #e9ecef; flex-shrink:0; z-index:9; box-shadow:0 2px 4px rgba(0,0,0,0.04);">
+                <p style="color:#666; font-size:0.9em; margin-top:0; margin-bottom:10px;">운행일: <b id="inspectDate"></b> | 예정 대수: <b id="inspectBusCount" style="color:#e83e8c;"></b>대</p>
+                <div id="busTabs" style="display:flex; gap:5px; overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch;"></div>
+            </div>
+
+            <!-- 2. [하단 스크롤 서스펜션 구역] 점검표 본문만 단독 스크롤 -->
+            <div class="modal-scroll-area" style="padding:20px; overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch;">
+                <div id="inspectionFormArea"></div>
+            </div>
+        </div>
+    </div>
+
+<script src="개별배치.js"></script>
+</body>
+</body>
+</html>
