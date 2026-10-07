@@ -1,1 +1,402 @@
-<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>3D 버스 점검 메뉴얼</title><script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script><style>*{box-sizing:border-box}body,html{margin:0;height:100%}body{font-family:'Malgun Gothic',sans-serif;background:#f4f4f9;color:#222;display:flex;flex-direction:column}.top-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.08);flex-wrap:wrap}.top-bar h2{margin:0;font-size:1.3em}.top-btn{padding:9px 16px;border-radius:6px;border:none;background:#6c757d;color:#fff;font-weight:700;cursor:pointer;font-size:.95em;white-space:nowrap}.main{flex:1;display:flex;gap:14px;padding:14px;min-height:0}.viewer-wrap{flex:1.6;position:relative;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;min-height:320px}#viewer{position:absolute;inset:0;touch-action:none}#viewer canvas{display:block}.view-toolbar{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;pointer-events:none;z-index:2}.view-toolbar>*{pointer-events:auto}.mode-btn{padding:8px 14px;border-radius:20px;border:2px solid #007bff;background:#fff;color:#007bff;font-weight:700;cursor:pointer;font-size:.9em}.mode-btn.active{background:#007bff;color:#fff}.spot-group{display:none;gap:4px;margin-left:6px;flex-wrap:wrap}.spot-group.show{display:flex}.spot-btn{padding:6px 10px;border-radius:14px;border:1px solid #adb5bd;background:rgba(255,255,255,.9);color:#333;font-size:.8em;font-weight:700;cursor:pointer}.cam-group{display:flex;gap:4px;margin-left:8px;padding-left:8px;border-left:2px solid rgba(0,0,0,.12)}.cam-btn{padding:8px 12px;border-radius:20px;border:2px solid #28a745;background:#fff;color:#28a745;font-weight:700;cursor:pointer;font-size:.85em}.cam-btn.active{background:#28a745;color:#fff}.joystick{position:absolute;left:18px;bottom:46px;width:110px;height:110px;border-radius:50%;background:rgba(0,0,0,.22);border:2px solid rgba(255,255,255,.6);display:none;touch-action:none;z-index:3}.joy-knob{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(0,0,0,.3);pointer-events:none}.fp-action{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);display:none;padding:10px 18px;border:none;border-radius:22px;background:#f08c00;color:#fff;font-size:.95em;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.3);cursor:pointer;z-index:3;animation:fpPulse 1.2s ease-in-out infinite}@keyframes fpPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.07)}}.reset-btn{margin-left:auto;padding:6px 10px;border-radius:14px;border:1px solid #adb5bd;background:rgba(255,255,255,.9);font-size:.8em;cursor:pointer}.view-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;font-size:.78em;padding:5px 12px;border-radius:12px;white-space:nowrap;pointer-events:none;z-index:2}.ext-info{position:absolute;right:10px;bottom:40px;width:300px;max-width:calc(100% - 20px);max-height:calc(100% - 110px);overflow-y:auto;display:none;background:rgba(255,255,255,.97);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.25);padding:10px 12px;z-index:4;animation:extPop .35s ease-out}.tire-actions{position:absolute;left:0;top:0;display:none;flex-direction:column;gap:6px;z-index:3;transform:translate(0,-50%)}.tire-actions button{padding:7px 12px;border-radius:16px;border:2px solid #1c7ed6;background:rgba(255,255,255,.95);color:#1c7ed6;font-weight:700;font-size:.85em;cursor:pointer;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)}.tire-actions button.active,.tire-actions button:hover{background:#1c7ed6;color:#fff}@keyframes extPop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}.ext-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:.95em;color:#c00000}.ext-head button{border:none;background:#e9ecef;border-radius:50%;width:26px;height:26px;cursor:pointer;font-weight:700}.ext-body{display:flex;gap:10px;align-items:flex-start}.ext-gauge{flex:0 0 auto;text-align:center;font-size:.75em;color:#555}.ext-gauge canvas{width:110px;height:110px;display:block}.ext-label{flex:1;min-width:0;font-size:.82em;border:2px solid #c00000;border-radius:6px;padding:6px 8px}.ext-row{display:flex;justify-content:space-between;gap:6px}.ext-row span{color:#666}.ext-note{font-size:.85em;color:#999;margin-bottom:4px}.ext-badge{display:inline-block;margin-top:3px;padding:2px 7px;border-radius:10px;font-weight:700;font-size:.92em;color:#fff}.ext-badge.ok{background:#2f9e44}.ext-badge.ng{background:#e03131}.ext-verdict{margin-top:8px;padding:6px 8px;border-radius:6px;font-weight:700;font-size:.85em}.ext-verdict.ok{background:#ebfbee;color:#2b8a3e}.ext-verdict.ng{background:#fff5f5;color:#c92a2a}.ext-verdict.info{background:#eef7ff;color:#0b5394}.ext-checks{margin:6px 0 0;padding-left:16px;line-height:1.5;color:#333}.view-error{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;color:#666}.slide-wrap{flex:1;display:flex;flex-direction:column;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);min-width:300px;overflow:hidden}.slide-head{padding:12px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;gap:8px}.slide-head select{padding:6px;border-radius:6px;border:1px solid #ccc;max-width:70%;font-size:.9em}.slide-counter{font-size:.85em;color:#888;font-weight:700;white-space:nowrap}.slide-body{flex:1;overflow-y:auto;padding:18px 20px}.slide-tag{display:inline-block;padding:3px 10px;border-radius:10px;font-size:.75em;font-weight:700;margin-bottom:8px}.slide-tag.exterior{background:#cce5ff;color:#004085}.slide-tag.interior{background:#f8d7da;color:#721c24}.slide-title{margin:0 0 12px;font-size:1.35em;color:#007bff}.slide-content{line-height:1.7;font-size:.95em;color:#444}.slide-content ul{padding-left:20px;margin:8px 0}.slide-content .criteria{background:#fff5f5;border-left:4px solid #dc3545;padding:8px 12px;border-radius:4px;margin:10px 0}.slide-content .criteria ul{margin:4px 0 0}.slide-content .ex-title{margin:16px 0 6px;font-weight:700;color:#343a40;font-size:.95em}.slide-content .ex-fig{margin:0 0 10px;background:#fff;border:1px solid #dee2e6;border-radius:10px;padding:8px}.slide-content .ex-photo{position:relative;border-radius:6px;overflow:hidden;background:#e9ecef;aspect-ratio:2/1}.slide-content .ex-photo img{width:100%;height:100%;object-fit:cover;display:block}.slide-content .ex-tag{position:absolute;top:6px;transform:translateX(-50%);padding:2px 8px;border-radius:10px;font-size:.78em;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.35)}.slide-content .ex-tag.ok{background:rgba(47,158,68,.92)}.slide-content .ex-tag.ng{background:rgba(224,49,49,.92)}.slide-content .ex-fig figcaption{font-size:.82em;color:#495057;margin-top:4px;line-height:1.45}.slide-content .tip{background:#eef7ff;border-left:4px solid #17a2b8;padding:8px 12px;border-radius:4px;margin:10px 0;font-size:.92em}.slide-content .todo{color:#aaa;font-style:italic}.slide-nav{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid #eee}.nav-btn{flex:0 0 auto;padding:10px 18px;border-radius:6px;border:none;background:#007bff;color:#fff;font-weight:700;cursor:pointer;font-size:.95em}.nav-btn:disabled{background:#ced4da;cursor:default}.slide-dots{flex:1;display:flex;justify-content:center;gap:6px;flex-wrap:wrap}.dot{width:9px;height:9px;border-radius:50%;background:#ced4da;cursor:pointer}.dot.active{background:#007bff;transform:scale(1.3)}@media (max-width:900px){.main{flex-direction:column;padding:8px;gap:8px}.viewer-wrap{flex:none;height:52vh}.slide-wrap{flex:1;min-width:0;min-height:260px}.top-bar{padding:10px 12px}.top-bar h2{font-size:1.05em}.mode-btn{padding:7px 11px;font-size:.82em}.cam-group{margin-left:0;padding-left:0;border-left:none}.cam-btn{padding:6px 10px;font-size:.8em}}</style></head><body><div class="top-bar"><h2>🚌 3D 버스 점검 메뉴얼</h2><button class="top-btn" onclick="goBack()">🔙 돌아가기</button></div><div class="main"><div class="viewer-wrap"><div id="viewer"></div><div class="view-toolbar"><button class="mode-btn active" id="modeExterior" onclick='setViewMode("exterior")'>🚌 외관</button> <button class="mode-btn" id="modeInterior" onclick='setViewMode("interior")'>💺 실내</button> <button class="mode-btn" id="modeUnderbody" onclick='setViewMode("underbody")'>🔧 하체</button><div class="cam-group"><button class="cam-btn active" id="camThird" onclick='setCameraMode("third")'>🎥 3인칭</button> <button class="cam-btn" id="camFirst" onclick='setCameraMode("first")'>🚶 1인칭</button> <button class="spot-btn" id="crouchBtn" style="display:none" onclick="toggleCrouch()">🧎 앉기</button></div><div class="spot-group" id="interiorSpots"><button class="spot-btn" onclick='goInteriorSpot("driver")'>운전석</button> <button class="spot-btn" onclick='goInteriorSpot("front")'>앞쪽</button> <button class="spot-btn" onclick='goInteriorSpot("middle")'>중간</button> <button class="spot-btn" onclick='goInteriorSpot("rear")'>뒤쪽</button></div><button class="reset-btn" onclick="resetView()">↺ 시점 초기화</button></div><div class="joystick" id="joystick"><div class="joy-knob" id="joyKnob"></div></div><button class="fp-action" id="oilPanBtn" onclick="lookOilPan()">⬇ 엔진 오일팬 확인</button><div class="ext-info" id="extInfo"><div class="ext-head"><b id="extTitle"></b><button onclick="closeInfoCard()">✕</button></div><div class="ext-body"><div class="ext-gauge" id="extGaugeWrap"><canvas id="extGauge" width="240" height="240"></canvas>압력게이지</div><div class="ext-label" id="extLabel"></div></div><div class="ext-verdict" id="extVerdict"></div></div><div class="tire-actions" id="tireActions"><button data-check="air" onclick='playTireCheck("air")'>🔨 공기압 점검</button> <button data-check="tread" onclick='playTireCheck("tread")'>📏 트레드 점검</button></div><div class="view-hint" id="viewHint">드래그: 회전 · 두 손가락/휠: 확대</div><div class="view-error" id="viewError">이 기기/브라우저에서는 3D 화면을 표시할 수 없습니다.<br>(크롬 최신 버전에서 열어 주세요)</div></div><div class="slide-wrap"><div class="slide-head"><select id="slideSelect" onchange="goSlide(Number(this.value))"></select> <span class="slide-counter" id="slideCounter"></span></div><div class="slide-body" id="slideBody"></div><div class="slide-nav"><button class="nav-btn" id="prevBtn" onclick="prevSlide()">◀ 이전</button><div class="slide-dots" id="slideDots"></div><button class="nav-btn" id="nextBtn" onclick="nextSlide()">다음 ▶</button></div></div></div><script src="점검메뉴얼3D.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D 버스 점검 메뉴얼</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; height: 100%; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: #f4f4f9; color: #222; display: flex; flex-direction: column; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 18px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.08); flex-wrap: wrap; }
+        .top-bar h2 { margin: 0; font-size: 1.3em; }
+        .top-btn { padding: 9px 16px; border-radius: 6px; border: none; background: #6c757d; color: white; font-weight: bold; cursor: pointer; font-size: 0.95em; white-space: nowrap; }
+
+        .main { flex: 1; display: flex; gap: 14px; padding: 14px; min-height: 0; }
+
+        /* 3D 뷰어 */
+        .viewer-wrap { flex: 1.6; position: relative; container-type: inline-size; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; min-height: 320px; }
+        #viewer { position: absolute; inset: 0; touch-action: none; }
+        #viewer canvas { display: block; }
+        .view-toolbar { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; pointer-events: none; z-index: 2; }
+        .view-toolbar > * { pointer-events: auto; }
+        .mode-btn { padding: 8px 14px; border-radius: 20px; border: 2px solid #007bff; background: white; color: #007bff; font-weight: bold; cursor: pointer; font-size: 0.9em; }
+        .mode-btn.active { background: #007bff; color: white; }
+        .spot-group { display: none; gap: 4px; margin-left: 6px; flex-wrap: wrap; }
+        .spot-group.show { display: flex; }
+        .spot-btn { padding: 6px 10px; border-radius: 14px; border: 1px solid #adb5bd; background: rgba(255,255,255,0.9); color: #333; font-size: 0.8em; font-weight: bold; cursor: pointer; }
+        .spot-btn.active { background: #007bff; border-color: #007bff; color: white; }
+        .cam-group { display: flex; gap: 4px; margin-left: 8px; padding-left: 8px; border-left: 2px solid rgba(0,0,0,0.12); }
+        .cam-btn { padding: 8px 12px; border-radius: 20px; border: 2px solid #28a745; background: white; color: #28a745; font-weight: bold; cursor: pointer; font-size: 0.85em; }
+        .cam-btn.active { background: #28a745; color: white; }
+        .joystick { position: absolute; left: 18px; bottom: 46px; width: 110px; height: 110px; border-radius: 50%; background: rgba(0,0,0,0.22); border: 2px solid rgba(255,255,255,0.6); display: none; touch-action: none; z-index: 3; }
+        .joy-knob { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(255,255,255,0.85); box-shadow: 0 2px 6px rgba(0,0,0,0.3); pointer-events: none; }
+        .key-guide { position: absolute; left: 14px; bottom: 46px; display: none; padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.28); opacity: 0.8; pointer-events: none; z-index: 3; user-select: none; }
+        .key-row { display: flex; justify-content: center; gap: 5px; margin-top: 5px; }
+        .key-row:first-child { margin-top: 0; }
+        .key { min-width: 50px; height: 50px; padding: 0 6px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid rgba(255,255,255,0.7); border-bottom-width: 4px; background: rgba(255,255,255,0.22); color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.6); transition: background 0.1s, transform 0.1s; }
+        .key b { font-size: 1.15em; line-height: 1.1; }
+        .key span { font-size: 0.72em; margin-top: 2px; }
+        .key.wide { min-width: 80px; }
+        .key.on { background: rgba(255,193,7,0.85); color: #222; text-shadow: none; transform: translateY(2px); border-bottom-width: 2px; }
+        .key-row.gap { margin-top: 9px; }
+        .key-guide.show { display: flex; gap: 10px; align-items: stretch; }
+        .key.mouse-key { height: auto; min-width: 74px; justify-content: center; gap: 4px; text-align: center; }
+        .mouse-ico { position: relative; width: 26px; height: 40px; border: 2px solid white; border-radius: 13px 13px 16px 16px; overflow: hidden; box-sizing: border-box; }
+        .mouse-ico i { position: absolute; left: 0; top: 0; width: 50%; height: 42%; background: #ffc107; }
+        .mouse-ico::after { content: ""; position: absolute; left: 50%; top: 0; width: 2px; height: 42%; margin-left: -1px; background: white; }
+        .mouse-ico::before { content: ""; position: absolute; left: 0; right: 0; top: 42%; height: 2px; background: white; }
+        .key.on .mouse-ico, .key.on .mouse-ico::after, .key.on .mouse-ico::before { border-color: #222; }
+        .key.on .mouse-ico::after, .key.on .mouse-ico::before { background: #222; }
+        .mouse-ico.wheel i { display: none; }
+        .mouse-ico u { display: none; }
+        .mouse-ico.wheel u { display: block; position: absolute; left: 50%; top: 5px; width: 6px; height: 11px; margin-left: -3px; border-radius: 3px; background: #ffc107; z-index: 1; }
+        .guide-col { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .guide-col > b { margin-top: 5px; color: white; font-size: 0.85em; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+        .look-tutor { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; align-items: center; gap: 12px; padding: 18px 26px; border-radius: 16px; background: rgba(0,0,0,0.55); color: white; font-size: 1.1em; font-weight: bold; text-align: center; line-height: 1.5; pointer-events: none; z-index: 4; }
+        .look-tutor.show { display: flex; }
+        .look-tutor small { font-size: 0.8em; font-weight: normal; opacity: 0.9; }
+        .look-tutor b { color: #ffc107; }
+        .tutor-track { position: relative; width: 200px; height: 56px; }
+        .tutor-track::before, .tutor-track::after { position: absolute; top: 14px; font-size: 1.3em; opacity: 0.7; }
+        .tutor-track::before { content: "◀"; left: 0; }
+        .tutor-track::after { content: "▶"; right: 0; }
+        .tutor-track .mouse-ico { position: absolute; left: 50%; top: 6px; margin-left: -13px; animation: tutorDrag 2.4s ease-in-out infinite; }
+        .tutor-track .mouse-ico i { animation: tutorClick 2.4s ease-in-out infinite; }
+        .look-tutor.done .tutor-track { display: none; }
+        @keyframes tutorDrag { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-55px); } 75% { transform: translateX(55px); } }
+        @keyframes tutorClick { 0%, 100% { opacity: 0.5; } 10%, 90% { opacity: 1; } }
+        /* 점검해보기: 조작 튜토리얼 → 준비 → 타이머 점검 → 완료 */
+        .test-tutor { position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; gap: 8px; padding: 14px 22px; border-radius: 16px; background: rgba(0,0,0,0.68); color: white; font-weight: bold; text-align: center; line-height: 1.5; z-index: 4; width: max-content; max-width: calc(100% - 40px); pointer-events: none; }
+        .test-tutor.show { display: flex; }
+        .test-tutor.card { top: 50%; bottom: auto; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); pointer-events: auto; padding: 20px 28px; }
+        .test-tutor b { color: #ffc107; }
+        .test-tutor small { font-weight: normal; opacity: 0.9; }
+        .test-tutor .tt-title { font-size: 1.15em; }
+        .tt-step { font-size: 0.78em; opacity: 0.8; letter-spacing: 1px; }
+        .tt-keys { display: flex; gap: 6px; }
+        .tt-keys span { min-width: 34px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.7); }
+        .tt-keys span.ok { background: #2f9e44; border-color: #2f9e44; }
+        .tt-bar { width: 220px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.25); overflow: hidden; }
+        .tt-bar i { display: block; height: 100%; background: #ffc107; transition: width 0.15s; }
+        .tt-list { margin: 0; padding-left: 18px; text-align: left; font-weight: normal; font-size: 0.9em; }
+        .tt-btns { display: flex; gap: 8px; pointer-events: auto; }
+        .tt-btns button { padding: 8px 16px; border-radius: 18px; border: none; font-weight: bold; cursor: pointer; font-family: inherit; font-size: 0.9em; }
+        .tt-btns .go { background: #e8590c; color: white; font-size: 1em; padding: 10px 22px; }
+        .tt-btns .sub { background: rgba(255,255,255,0.85); color: #333; }
+        .tt-time { font-size: 1.8em; color: #ffc107; }
+        .test-tutor .tutor-track { flex: 0 0 auto; }
+        .tt-finger { position: absolute; left: 50%; top: 4px; margin-left: -16px; font-size: 32px; line-height: 1; animation: tutorDrag 2.4s ease-in-out infinite; }
+        .fp-progress .sim-time { color: #e8590c; }
+        .fp-action { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); display: none; padding: 10px 18px; border: none; border-radius: 22px; background: #f08c00; color: white; font-size: 0.95em; font-weight: bold; box-shadow: 0 3px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 3; animation: fpPulse 1.2s ease-in-out infinite; }
+        @keyframes fpPulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.07); } }
+        .zone-layer { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+        .zone-layer svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        .zone-layer line { stroke: #ff8a00; stroke-width: 1.5; }
+        .zone-layer circle { fill: #ff8a00; stroke: white; stroke-width: 1.5; }
+        .zone-layer .ok line, .zone-layer .ok circle { stroke: #2f9e44; }
+        .zone-layer .ok circle { fill: #2f9e44; stroke: white; }
+        .zone-label { position: absolute; padding: 3px 8px; border-radius: 6px; border: 1.5px solid #ff8a00; background: rgba(255,255,255,0.92); color: #333; font-size: 0.82em; font-weight: bold; white-space: nowrap; transform: translate(0, -50%); }
+        .zone-label.left { transform: translate(-100%, -50%); }
+        .zone-label.below { transform: translate(-50%, 0); }
+        .zone-label.above { transform: translate(-50%, -100%); }
+        .zone-layer .arrow line { stroke-width: 3; stroke-dasharray: 8 5; animation: zoneDash 0.8s linear infinite; }
+        @keyframes zoneDash { to { stroke-dashoffset: -13; } }
+        .zone-label.ok { border-color: #2f9e44; color: #2b8a3e; background: rgba(235,251,238,0.95); }
+        .zone-badge { position: absolute; top: 122px; left: 50%; transform: translateX(-50%); padding: 4px 12px; border-radius: 14px; background: rgba(255,138,0,0.9); color: white; font-size: 0.85em; font-weight: bold; white-space: nowrap; display: none; }
+        .ext-back { display: block; width: 100%; margin-top: 8px; padding: 9px; border: none; border-radius: 8px; background: #1c7ed6; color: white; font-size: 0.9em; font-weight: bold; cursor: pointer; }
+        .ext-back:hover { background: #1971c2; }
+        .right-col { position: relative; margin-left: auto; display: flex; align-items: center; gap: 6px; }
+        .fp-progress { display: none; align-items: center; gap: 6px; }
+        .fp-progress.show { display: flex; }
+        .fp-progress h4 { margin: 0; padding: 6px 12px; border-radius: 14px; background: rgba(255,255,255,0.95); box-shadow: 0 1px 4px rgba(0,0,0,0.15); font-size: 0.85em; color: #222; white-space: nowrap; }
+        .ext-checklist { flex: 0 0 100%; display: none; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5em; padding: 0.45em 0.6em; border-radius: 12px; background: rgba(255,255,255,0.95); box-shadow: 0 2px 10px rgba(0,0,0,0.2); white-space: nowrap; font-size: clamp(9px, 1cqw, 15px); }
+        .ext-checklist.fp { font-size: clamp(9px, 0.9cqw, 14px); }
+        .ext-checklist.show { display: flex; }
+        .ext-checklist h4 { margin: 0; font-size: 1em; color: #222; flex: 0 0 auto; }
+        .check-group { display: flex; align-items: center; gap: 0.3em; flex: 0 0 auto; padding: 0.25em 0.35em 0.25em 0.25em; border-radius: 0.6em; background: var(--t); border: 2px solid var(--c); }
+        .check-title { padding: 0.3em 0.6em; border-radius: 0.45em; background: var(--c); color: white; font-size: 0.9em; font-weight: bold; }
+        .check-items { display: flex; gap: 0.3em; }
+        .check-reset { flex: 0 0 auto; }
+        .check-items button, .check-item { padding: 0.35em 0.6em; border-radius: 0.45em; border: 2px solid var(--c); background: white; color: var(--c); font-size: 0.9em; font-weight: bold; white-space: nowrap; text-align: center; }
+        .check-items button { cursor: pointer; transition: background 0.15s, color 0.15s, transform 0.15s; }
+        .check-items button:hover { background: var(--c); color: white; transform: translateY(-1px); }
+        .check-items button.active { background: var(--c); color: white; box-shadow: 0 0 0 3px rgba(0,0,0,0.15); }
+        .check-item { text-align: left; color: #888; border-color: #ced4da; }
+        .check-item.ok { background: #ebfbee; border-color: #40c057; color: #2b8a3e; }
+        .check-reset { padding: 6px 10px; border-radius: 14px; border: 1px solid #adb5bd; background: rgba(255,255,255,0.9); font-size: 0.8em; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .reset-btn { padding: 6px 10px; border-radius: 14px; border: 1px solid #adb5bd; background: rgba(255,255,255,0.9); font-size: 0.8em; cursor: pointer; }
+        .view-hint { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); color: white; font-size: 0.78em; padding: 5px 12px; border-radius: 12px; white-space: nowrap; pointer-events: none; z-index: 2; }
+        .ext-info { position: absolute; right: 10px; bottom: 40px; width: 300px; max-width: calc(100% - 20px); max-height: calc(100% - 110px); overflow-y: auto; display: none; background: rgba(255,255,255,0.97); border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); padding: 10px 12px; z-index: 4; animation: extPop 0.35s ease-out; }
+        .tire-actions { position: absolute; left: 0; top: 0; display: none; flex-direction: column; gap: 6px; z-index: 3; transform: translate(0, -50%); }
+        .tire-actions button { padding: 7px 12px; border-radius: 16px; border: 2px solid #1c7ed6; background: rgba(255,255,255,0.95); color: #1c7ed6; font-weight: bold; font-size: 0.85em; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+        .tire-actions button:hover, .tire-actions button.active { background: #1c7ed6; color: white; }
+        @keyframes extPop { from { opacity: 0; transform: translateY(10px) scale(0.96); } to { opacity: 1; transform: none; } }
+        .ext-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.95em; color: #c00000; }
+        .ext-head button { border: none; background: #e9ecef; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-weight: bold; }
+        .ext-body { display: flex; gap: 10px; align-items: flex-start; }
+        .ext-gauge { flex: 0 0 auto; text-align: center; font-size: 0.75em; color: #555; }
+        .ext-gauge canvas { width: 110px; height: 110px; display: block; }
+        .ext-label { flex: 1; min-width: 0; font-size: 0.82em; border: 2px solid #c00000; border-radius: 6px; padding: 6px 8px; }
+        .ext-row { display: flex; justify-content: space-between; gap: 6px; }
+        .ext-row span { color: #666; }
+        .ext-note { font-size: 0.85em; color: #999; margin-bottom: 4px; }
+        .ext-badge { display: inline-block; margin-top: 3px; padding: 2px 7px; border-radius: 10px; font-weight: bold; font-size: 0.92em; color: white; }
+        .ext-badge.ok { background: #2f9e44; }
+        .ext-badge.ng { background: #e03131; }
+        .ext-verdict { margin-top: 8px; padding: 6px 8px; border-radius: 6px; font-weight: bold; font-size: 0.85em; }
+        .ext-verdict.ok { background: #ebfbee; color: #2b8a3e; }
+        .ext-verdict.ng { background: #fff5f5; color: #c92a2a; }
+        .ext-verdict.info { background: #eef7ff; color: #0b5394; }
+        .ext-checks { margin: 6px 0 0; padding-left: 16px; line-height: 1.5; color: #333; }
+        .ext-tasks { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+        .ext-tasks li { display: flex; gap: 7px; align-items: flex-start; padding: 5px 6px; border-radius: 6px; border: 1px solid #dee2e6; background: #fff; color: #333; line-height: 1.45; cursor: pointer; user-select: none; transition: background 0.15s; }
+        .ext-tasks li:hover { background: #f1f3f5; }
+        .ext-tasks li.done { background: #ebfbee; border-color: #8ce99a; color: #2b8a3e; }
+        .ext-tasks li.locked { background: #f8f9fa; color: #868e96; }
+        .task-box { flex: 0 0 18px; height: 18px; margin-top: 1px; border: 2px solid #adb5bd; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; background: white; }
+        .ext-tasks li.done .task-box { background: #2f9e44; border-color: #2f9e44; color: white; }
+        .ext-tasks li.locked .task-box { border-style: dashed; font-size: 10px; }
+        .ext-tasks li.busy { background: #fff9db; border-color: #ffd43b; }
+        .task-wait { display: block; margin-top: 4px; font-size: 0.9em; font-weight: bold; color: #e67700; }
+        .task-wait i { display: block; height: 5px; margin-top: 3px; border-radius: 3px; background: #fab005; width: 0; }
+
+        /* 점검해보기 말풍선: me = 점검자(화면 아래) · driver = 기사님(머리 위) */
+        .sim-bubble { position: absolute; display: none; max-width: min(420px, calc(100% - 40px)); padding: 12px 16px; border-radius: 16px; background: white; color: #222; font-size: 1em; font-weight: bold; line-height: 1.5; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 5; pointer-events: none; animation: bubblePop 0.25s ease-out; }
+        .sim-bubble.show { display: block; }
+        .sim-bubble b { display: block; margin-bottom: 2px; font-size: 0.78em; color: #868e96; }
+        .sim-bubble::after { content: ""; position: absolute; left: 50%; bottom: -12px; margin-left: -10px; border: 10px solid transparent; border-top-color: white; border-bottom: 0; }
+        .sim-bubble.me { left: 50%; bottom: 70px; transform: translateX(-50%); border: 3px solid #e8590c; }
+        .sim-bubble.me::after { border-top-color: #e8590c; bottom: -13px; }
+        .sim-bubble.driver { transform: translate(-50%, calc(-100% - 14px)); border: 3px solid #1971c2; }
+        .sim-bubble.driver::after { border-top-color: #1971c2; bottom: -13px; }
+        .sim-bubble.driver.free { left: 50%; top: 150px; transform: translateX(-50%); }
+        @keyframes bubblePop { from { opacity: 0; scale: 0.9; } to { opacity: 1; scale: 1; } }
+        .task-msg { display: block; margin-top: 3px; font-style: normal; font-size: 0.92em; font-weight: bold; color: #e03131; }
+        .view-error { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #666; }
+
+        /* 슬라이드 패널 */
+        .slide-wrap { flex: 1; display: flex; flex-direction: column; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); min-width: 300px; overflow: hidden; }
+        .slide-head { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .slide-head select { padding: 6px; border-radius: 6px; border: 1px solid #ccc; max-width: 70%; font-size: 0.9em; }
+        .slide-counter { font-size: 0.85em; color: #888; font-weight: bold; white-space: nowrap; }
+        .slide-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+        .slide-tag { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 0.75em; font-weight: bold; margin-bottom: 8px; }
+        .slide-tag.exterior { background: #cce5ff; color: #004085; }
+        .slide-tag.interior { background: #f8d7da; color: #721c24; }
+        .slide-title { margin: 0 0 12px; font-size: 1.35em; color: #007bff; }
+        .slide-content { line-height: 1.7; font-size: 0.95em; color: #444; }
+        .slide-content ul { padding-left: 20px; margin: 8px 0; }
+        .slide-content .criteria { background: #fff5f5; border-left: 4px solid #dc3545; padding: 8px 12px; border-radius: 4px; margin: 10px 0; }
+        .slide-content .criteria ul { margin: 4px 0 0; }
+        .slide-content .ex-title { margin: 16px 0 6px; font-weight: bold; color: #343a40; font-size: 0.95em; }
+        .slide-content .ex-fig { margin: 0 0 10px; background: #fff; border: 1px solid #dee2e6; border-radius: 10px; padding: 8px; }
+        .slide-content .ex-photo { position: relative; border-radius: 6px; overflow: hidden; background: #e9ecef; aspect-ratio: 2 / 1; }
+        .slide-content .ex-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .slide-content .ex-tag { position: absolute; top: 6px; transform: translateX(-50%); padding: 2px 8px; border-radius: 10px; font-size: 0.78em; font-weight: bold; color: white; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.35); }
+        .slide-content .ex-tag.ok { background: rgba(47,158,68,0.92); }
+        .slide-content .ex-tag.ng { background: rgba(224,49,49,0.92); }
+        .slide-content .ex-fig figcaption { font-size: 0.82em; color: #495057; margin-top: 4px; line-height: 1.45; }
+        .slide-content .tip { background: #eef7ff; border-left: 4px solid #17a2b8; padding: 8px 12px; border-radius: 4px; margin: 10px 0; font-size: 0.92em; }
+        .slide-content .todo { color: #aaa; font-style: italic; }
+        .slide-nav { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid #eee; }
+        .nav-btn { flex: 0 0 auto; padding: 10px 18px; border-radius: 6px; border: none; background: #007bff; color: white; font-weight: bold; cursor: pointer; font-size: 0.95em; }
+        .nav-btn:disabled { background: #ced4da; cursor: default; }
+        .slide-dots { flex: 1; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+        .dot { width: 9px; height: 9px; border-radius: 50%; background: #ced4da; cursor: pointer; }
+        .dot.active { background: #007bff; transform: scale(1.3); }
+
+        /* 점검해보기: 오른쪽 슬라이드 대신 버스 점검표 (개별배치 점검표와 같은 항목) */
+        .cam-btn.test { border-color: #e8590c; color: #e8590c; }
+        .cam-btn.test.active { background: #e8590c; color: white; }
+        .sheet-wrap { display: none; }
+        .main.testing > .slide-wrap:not(.sheet-wrap) { display: none; }
+        .main.testing > .sheet-wrap { display: flex; }
+        .sheet-head-title { color: #e8590c; font-size: 1.1em; }
+        .sheet-note { flex: 1; text-align: right; font-size: 0.78em; color: #888; }
+        #sheetBody { background: #f8f9fa; padding: 14px; }
+        .chk-container { display: flex; flex-direction: column; gap: 8px; }
+        .chk-row { background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .chk-title { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-weight: bold; color: #007bff; margin-bottom: 8px; font-size: 0.95em; border-bottom: 1px dashed #eee; padding-bottom: 4px; }
+        .chk-3d { flex: 0 0 auto; padding: 2px 8px; border-radius: 10px; background: #e9ecef; color: #868e96; font-size: 0.78em; }
+        .chk-3d.done { background: #ebfbee; color: #2b8a3e; }
+        .chk-field { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .chk-field > span { width: 84px; flex-shrink: 0; font-size: 0.85em; color: #555; font-weight: bold; }
+        .chk-field > i { width: 32px; flex-shrink: 0; font-style: normal; font-size: 0.9em; font-weight: bold; color: #666; text-align: center; }
+        .chk-input { width: 100%; padding: 9px 8px; border: 1px solid #bbb; border-radius: 6px; font-size: 1em; background: #fdfdfd; font-family: inherit; }
+        .chk-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+        .chk-grid + .chk-grid, .chk-grid + .chk-input { margin-top: 8px; }
+        .chk-btn { flex: 1; min-width: 18%; padding: 10px 1px; text-align: center; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.82em; letter-spacing: -0.5px; word-break: keep-all; user-select: none; font-family: inherit; }
+        .tog-good { background: #28a745; color: white; border-color: #28a745; }
+        .tog-bad { background: #dc3545; color: white; border-color: #dc3545; }
+        .rad-off { background: #f8f9fa; color: #444; }
+        .sheet-tabs { display: flex; gap: 4px; }
+        .sheet-tabs button { padding: 6px 12px; border-radius: 16px; border: 2px solid #e8590c; background: white; color: #e8590c; font-weight: bold; font-size: 0.85em; cursor: pointer; font-family: inherit; }
+        .sheet-tabs button.active { background: #e8590c; color: white; }
+
+        /* 종이 점검표: 현장체험학습 차량 안전 점검 내역서(hwpx) 양식 */
+        #sheetBody.paper-mode { background: #dee2e6; }
+        .paper { background: white; padding: 4% 4.5% 5%; box-shadow: 0 2px 8px rgba(0,0,0,0.2); color: #111; font-size: 0.8em; container-type: inline-size; }
+        .paper-form { display: inline-block; padding: 3px 10px; background: #e9ecef; border: 1px solid #adb5bd; font-weight: bold; font-size: 1.05em; }
+        .paper-title { margin: 12px 0 8px; text-align: center; font-size: 1.45em; font-weight: normal; letter-spacing: -0.5px; }
+        .paper table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .paper th, .paper td { border: 1px solid #222; padding: 3px 4px; font-weight: normal; vertical-align: middle; }
+        .paper th { text-align: center; white-space: nowrap; }
+        .paper input, .paper textarea { width: 100%; border: none; background: #f3f9ff; font: inherit; color: #0b3d91; padding: 2px 3px; resize: none; }
+        .paper input:focus, .paper textarea:focus { outline: 1px solid #74c0fc; background: #e7f5ff; }
+        .paper-main { margin-top: 6px; }
+        .paper-vert { width: 7%; line-height: 2; }
+        .paper-fig { width: 50%; padding: 4px !important; }
+        .paper-figbox { position: relative; container-type: inline-size; }
+        .paper-figbox img { display: block; width: 100%; height: auto; }
+        .pbox { position: absolute; width: 12%; height: 2.8%; padding: 0; border: none; background: transparent; cursor: pointer; border-radius: 3px; }
+        .pbox:hover { background: rgba(28,126,214,0.15); }
+        .pbox.on::before { content: "✔"; position: absolute; left: 0; top: 50%; transform: translate(-10%, -60%); color: #e03131; font-weight: bold; font-size: 4.2cqw; line-height: 1; }
+        .paper-notes { padding: 0 !important; vertical-align: top !important; }
+        .pn-head { padding: 3px 4px; border-bottom: 1px solid #222; color: #e03131; font-weight: bold; font-size: 0.95em; }
+        .pn-item { border-bottom: 1px solid #222; }
+        .pn-item:last-child { border-bottom: none; }
+        .pn-item > b { display: block; padding: 3px 4px 1px; }
+        .pn-item > textarea { display: block; }
+        .pn-sub { display: flex; border-top: 1px solid #222; }
+        .pn-sub > span { flex: 0 0 62%; padding: 2px 4px; border-right: 1px solid #222; white-space: nowrap; overflow: hidden; }
+        .paper-sign { margin-top: 6px; }
+        .paper-sign td { white-space: nowrap; }
+        .paper-sign .sig { display: flex; align-items: center; gap: 4px; }
+        .paper-sign .sig input { flex: 1; min-width: 0; }
+        .paper-sign .sig em { font-style: normal; color: #555; }
+
+        @media (max-width: 900px) {
+            .main { flex-direction: column; padding: 8px; gap: 8px; }
+            .viewer-wrap { flex: none; height: 52vh; }
+            .slide-wrap { flex: 1; min-width: 0; min-height: 260px; }
+            .top-bar { padding: 10px 12px; }
+            .top-bar h2 { font-size: 1.05em; }
+            .mode-btn { padding: 7px 11px; font-size: 0.82em; }
+            .cam-group { margin-left: 0; padding-left: 0; border-left: none; }
+            .cam-btn { padding: 6px 10px; font-size: 0.8em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h2>🚌 3D 버스 점검 메뉴얼</h2>
+        <button class="top-btn" onclick="goBack()">🔙 돌아가기</button>
+    </div>
+
+    <div class="main">
+        <div class="viewer-wrap">
+            <div id="viewer"></div>
+            <div class="zone-layer"><svg id="zoneLines"></svg><div id="zoneLabels"></div><div class="zone-badge" id="zoneBadge"></div></div>
+            <div class="view-toolbar">
+                <button class="mode-btn active" id="modeExterior" onclick="setViewMode('exterior')">🚌 외관</button>
+                <button class="mode-btn" id="modeInterior" onclick="setViewMode('interior')">💺 실내</button>
+                <button class="mode-btn" id="modeUnderbody" onclick="setViewMode('underbody')">🔧 하체</button>
+                <div class="cam-group">
+                    <button class="cam-btn active" id="camThird" onclick="setCameraMode('third')">🎥 3인칭</button>
+                    <button class="cam-btn" id="camFirst" onclick="setCameraMode('first')">🚶 1인칭</button>
+                    <button class="cam-btn test" id="camTest" onclick="setCameraMode('test')">📝 점검해보기</button>
+                    <button class="spot-btn" id="crouchBtn" style="display:none;" onclick="toggleCrouch()">🧎 앉기</button>
+                </div>
+                <div class="spot-group" id="interiorSpots">
+                    <button class="spot-btn" id="spotOverview" onclick="goInteriorOverview()">🔭 전체 보기</button>
+                    <button class="spot-btn" onclick="goInteriorSpot('driver')">운전석</button>
+                    <button class="spot-btn" onclick="goInteriorSpot('front')">앞쪽</button>
+                    <button class="spot-btn" onclick="goInteriorSpot('middle')">중간</button>
+                    <button class="spot-btn" onclick="goInteriorSpot('rear')">뒤쪽</button>
+                </div>
+                <div class="right-col">
+                    <div class="fp-progress" id="fpProgress"></div>
+                    <button class="reset-btn" onclick="resetView()">↺ 시점 초기화</button>
+                </div>
+                <div class="ext-checklist" id="extChecklist"></div>
+            </div>
+            <div class="joystick" id="joystick"><div class="joy-knob" id="joyKnob"></div></div>
+            <div class="look-tutor" id="lookTutor">
+                <div class="tutor-track"><div class="mouse-ico"><i></i></div></div>
+                <div id="lookTutorText"></div>
+            </div>
+            <div class="key-guide" id="orbitGuide">
+                <div class="key mouse-key" data-keys="MouseDrag"><div class="mouse-ico"><i></i><u></u></div><span>왼쪽 누른 채<br>끌기</span><b style="font-size:0.85em;">버스 돌리기</b></div>
+                <div class="key mouse-key" data-keys="MouseWheel"><div class="mouse-ico wheel"><i></i><u></u></div><span>가운데 휠<br>굴리기</span><b style="font-size:0.85em;">확대·축소</b></div>
+                <div class="guide-col">
+                    <div class="key-row"><div class="key" data-keys="KeyW"><b>W</b><span>위로</span></div></div>
+                    <div class="key-row">
+                        <div class="key" data-keys="KeyA"><b>A</b><span>왼쪽</span></div>
+                        <div class="key" data-keys="KeyS"><b>S</b><span>아래로</span></div>
+                        <div class="key" data-keys="KeyD"><b>D</b><span>오른쪽</span></div>
+                    </div>
+                    <b>키보드로 버스 돌리기</b>
+                </div>
+            </div>
+            <div class="key-guide" id="keyGuide">
+                <div>
+                <div class="key-row"><div class="key" data-keys="KeyW"><b>W</b><span>앞으로</span></div></div>
+                <div class="key-row">
+                    <div class="key" data-keys="KeyA"><b>A</b><span>왼쪽</span></div>
+                    <div class="key" data-keys="KeyS"><b>S</b><span>뒤로</span></div>
+                    <div class="key" data-keys="KeyD"><b>D</b><span>오른쪽</span></div>
+                </div>
+                <div class="key-row gap">
+                    <div class="key wide" data-keys="ShiftLeft ShiftRight"><b>Shift</b><span>누르고 뛰기</span></div>
+                    <div class="key wide" id="keyCrouch" data-keys="KeyC"><b>C</b><span>앉기</span></div>
+                </div>
+                </div>
+                <div class="key mouse-key" data-keys="MouseDrag"><div class="mouse-ico"><i></i></div><span>왼쪽 누른 채<br>끌기</span><b style="font-size:0.85em;">둘러보기</b></div>
+            </div>
+            <div class="test-tutor" id="testTutor"></div>
+            <div class="sim-bubble" id="simBubble"></div>
+            <button class="fp-action" id="oilPanBtn" onclick="lookOilPan()">⬇ 엔진 오일팬 확인</button>
+            <div class="ext-info" id="extInfo">
+                <div class="ext-head"><b id="extTitle"></b><button onclick="closeInfoCard()">✕</button></div>
+                <div class="ext-body">
+                    <div class="ext-gauge" id="extGaugeWrap"><canvas id="extGauge" width="240" height="240"></canvas>압력게이지</div>
+                    <div class="ext-label" id="extLabel"></div>
+                </div>
+                <div class="ext-verdict" id="extVerdict"></div>
+                <button class="ext-back" id="extBack" style="display:none;" onclick="backToZone()">↩ 점검 위치로 돌아가기</button>
+            </div>
+            <div class="tire-actions" id="tireActions">
+                <button data-check="air" onclick="playTireCheck('air')">🔨 공기압 점검</button>
+                <button data-check="tread" onclick="playTireCheck('tread')">📏 트레드 점검</button>
+                <button data-check="nuts" onclick="playTireCheck('nuts')">🔩 휠 너트 점검</button>
+            </div>
+            <div class="view-hint" id="viewHint">드래그: 회전 · 두 손가락/휠: 확대</div>
+            <div class="view-error" id="viewError">이 기기/브라우저에서는 3D 화면을 표시할 수 없습니다.<br>(크롬 최신 버전에서 열어 주세요)</div>
+        </div>
+
+        <div class="slide-wrap">
+            <div class="slide-head">
+                <select id="slideSelect" onchange="goSlide(Number(this.value))"></select>
+                <span class="slide-counter" id="slideCounter"></span>
+            </div>
+            <div class="slide-body" id="slideBody"></div>
+            <div class="slide-nav">
+                <button class="nav-btn" id="prevBtn" onclick="prevSlide()">◀ 이전</button>
+                <div class="slide-dots" id="slideDots"></div>
+                <button class="nav-btn" id="nextBtn" onclick="nextSlide()">다음 ▶</button>
+            </div>
+        </div>
+
+        <div class="slide-wrap sheet-wrap" id="sheetWrap">
+            <div class="slide-head">
+                <b class="sheet-head-title">📝 버스 점검표</b>
+                <div class="sheet-tabs">
+                    <button id="sheetTabPaper" onclick="setSheetTab('paper')">📄 실제 점검표</button>
+                    <button id="sheetTabMobile" onclick="setSheetTab('mobile')">📱 모바일</button>
+                </div>
+            </div>
+            <div class="slide-body" id="sheetBody"></div>
+            <div class="slide-nav">
+                <button class="nav-btn" onclick="resetChecks()">↺ 처음부터 다시</button>
+                <span class="sheet-note">작성 내용은 이 기기에만 저장됩니다</span>
+            </div>
+        </div>
+    </div>
+
+<script src="점검메뉴얼3D.js"></script>
+</body>
+</html>
